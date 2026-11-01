@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Генератор ответов на рапорты</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Custom scrollbar for dark theme */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #27272a; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #52525b; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #71717a; 
+        }
+    </style>
+</head>
+<body class="bg-zinc-900 text-zinc-300 min-h-screen p-4 md:p-8">
+
+    <div class="max-w-4xl mx-auto space-y-6">
+        
+        <!-- Header -->
+        <header class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-zinc-100 tracking-tight">Генератор ответов на рапорты</h1>
+            <p class="text-zinc-500 mt-2">Автоматизированное формирование ответов для РОиО</p>
+        </header>
+
+        <!-- Settings Section -->
+        <section class="bg-zinc-800 rounded-2xl p-6 shadow-xl border border-zinc-700/50">
+            <h2 class="text-xl font-semibold text-zinc-100 mb-4 flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-emerald-500" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd" />
+                </svg>
+                Мои данные (Сохраняются автоматически)
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-zinc-400 mb-1">Мой Discord Тег</label>
+                    <input type="text" id="myDiscord" placeholder="<@694172323909206056>" class="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-4 py-2 text-zinc-100 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-zinc-400 mb-1">Мое Имя</label>
+                    <input type="text" id="myName" placeholder="Александр Карамзин" class="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-4 py-2 text-zinc-100 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-zinc-400 mb-1">Мой Статик</label>
+                    <input type="text" id="myStatic" placeholder="515-159" class="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-4 py-2 text-zinc-100 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors">
+                </div>
+            </div>
+        </section>
+
+        <!-- Tabs Navigation -->
+        <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 bg-zinc-800 p-1 rounded-xl shadow-lg border border-zinc-700/50">
+            <button onclick="switchTab('promo')" id="btn-promo" class="flex-1 py-2.5 px-4 text-sm font-medium rounded-lg bg-blue-600 text-white shadow transition-all">Рапорты на повышение</button>
+            <button onclick="switchTab('dismiss')" id="btn-dismiss" class="flex-1 py-2.5 px-4 text-sm font-medium rounded-lg text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700/50 transition-all">Рапорты на увольнение</button>
+            <button onclick="switchTab('audit')" id="btn-audit" class="flex-1 py-2.5 px-4 text-sm font-medium rounded-lg text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700/50 transition-all">Аудит склада</button>
+        </div>
+
+        <!-- Promo Tab Content -->
+        <div id="tab-promo" class="space-y-6 block">
+            <!-- Input Section -->
+            <section class="bg-zinc-800 rounded-2xl p-6 shadow-xl border border-zinc-700/50 space-y-4">
+                <h2 class="text-xl font-semibold text-zinc-100 mb-2 flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd" />
+                    </svg>
+                    Данные рапорта (Повышение)
+                </h2>
+                
+                <div>
+                    <label class="block text-sm font-medium text-zinc-400 mb-1">Текст рапорта</label>
+                    <textarea id="reportText" rows="6" placeholder="Вставьте скопированный текст рапорта сюда..." class="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-4 py-3 text-zinc-100 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors resize-y"></textarea>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-zinc-400 mb-1">Ссылка на рапорт</label>
+                        <input type="text" id="approvalLink" placeholder="https://discord.com/..." class="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-4 py-2 text-zinc-100 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-zinc-400 mb-1">Дата прошлого повышения (ДД.ММ)</label>
+                        <input type="text" id="lastPromoDate" maxlength="5" placeholder="ДД.ММ" class="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-4 py-2 text-zinc-100 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors">
+                    </div>
+                </div>
+
+                <div class="pt-4">
+                    <button onclick="generatePromoResponse()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-xl shadow-lg shadow-blue-900/20 transition-all active:scale-[0.99] flex justify-center items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                        </svg>
+                        Сформировать отчет
+                    </button>
+                </div>
+            </section>
+
+            <!-- Output Section -->
+            <section class="bg-zinc-800 rounded-2xl p-6 shadow-xl border border-zinc-700/50">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-semibold text-zinc-100 flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-purple-500" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
+                            <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd" />
+                        </svg>
+                        Результат
+                    </h2>
+                    <button onclick="copyToClipboard('outputText')" class="text-sm bg-zinc-700 hover:bg-zinc-600 text-zinc-200 py-1.5 px-4 rounded-lg transition-colors flex items-center gap-1 border border-zinc-600">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                        </svg>
+                        Скопировать
+                    </button>
+                </div>
+                <textarea id="outputText" rows="7" readonly class="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-4 py-3 text-emerald-400 font-mono text-sm focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-colors resize-y selection:bg-purple-900 selection:text-white"></textarea>
+            </section>
+        </div>
+
+        <!-- Dismiss Tab Content -->
+        <div id="tab-dismiss" class="space-y-6 hidden">
+            <!-- Input Section -->
+            <section class="bg-zinc-800 rounded-2xl p-6 shadow-xl border border-zinc-700/50 space-y-4">
+                <h2 class="text-xl font-semibold text-zinc-100 mb-2 flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-500" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+                    </svg>
+                    Данные рапорта (Увольнение)
+                </h2>
+                
+                <div>
+                    <label class="block text-sm font-medium text-zinc-400 mb-1">Текст рапорта</label>
+                    <textarea id="dismissReportText" rows="6" placeholder="Вставьте скопированный текст рапорта сюда..." class="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-4 py-3 text-zinc-100 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-colors resize-y"></textarea>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-zinc-400 mb-1">Ссылка на рапорт</label>
+                    <input type="text" id="dismissApprovalLink" placeholder="https://discord.com/..." class="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-4 py-2 text-zinc-100 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-colors">
+                </div>
+
+                <div class="pt-4">
+                    <button onclick="generateDismissResponse()" class="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-6 rounded-xl shadow-lg shadow-red-900/20 transition-all active:scale-[0.99] flex justify-center items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                        </svg>
+                        Сформировать отчет
+                    </button>
+                </div>
+            </section>
+
+            <!-- Output Section -->
+            <section class="bg-zinc-800 rounded-2xl p-6 shadow-xl border border-zinc-700/50">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-semibold text-zinc-100 flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-purple-500" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
+                            <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd" />
+                        </svg>
+                        Результат
+                    </h2>
+                    <button onclick="copyToClipboard('dismissOutputText')" class="text-sm bg-zinc-700 hover:bg-zinc-600 text-zinc-200 py-1.5 px-4 rounded-lg transition-colors flex items-center gap-1 border border-zinc-600">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                        </svg>
+                        Скопировать
+                    </button>
+                </div>
+                <textarea id="dismissOutputText" rows="5" readonly class="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-4 py-3 text-emerald-400 font-mono text-sm focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-colors resize-y selection:bg-purple-900 selection:text-white"></textarea>
+            </section>
+        </div>
+
+        <!-- Audit Tab Content -->
+        <div id="tab-audit" class="space-y-6 hidden">
+            <!-- Input Section -->
+            <section class="bg-zinc-800 rounded-2xl p-6 shadow-xl border border-zinc-700/50 space-y-4">
+                <h2 class="text-xl font-semibold text-zinc-100 mb-4 flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-yellow-500" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM11 13a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                    </svg>
+                    Запросы на аудит склада
+                </h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="audit-container">
+                    <!-- Будет заполнено через JS, чтобы не дублировать HTML -->
+                </div>
+
+                <div class="pt-4">
+                    <button onclick="generateAuditResponse()" class="w-full bg-yellow-600 hover:bg-yellow-700 text-white font-semibold py-3 px-6 rounded-xl shadow-lg shadow-yellow-900/20 transition-all active:scale-[0.99] flex justify-center items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                        </svg>
+                        Сформировать отчеты
+                    </button>
+                </div>
+            </section>
+
+            <!-- Output Section -->
+            <section class="bg-zinc-800 rounded-2xl p-6 shadow-xl border border-zinc-700/50">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-semibold text-zinc-100 flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-purple-500" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
+                            <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd" />
+                        </svg>
+                        Результат
+                    </h2>
+                    <button onclick="copyToClipboard('auditOutputText')" class="text-sm bg-zinc-700 hover:bg-zinc-600 text-zinc-200 py-1.5 px-4 rounded-lg transition-colors flex items-center gap-1 border border-zinc-600">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                        </svg>
+                        Скопировать
+                    </button>
+                </div>
+                <textarea id="auditOutputText" rows="12" readonly class="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-4 py-3 text-emerald-400 font-mono text-sm focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-colors resize-y selection:bg-purple-900 selection:text-white"></textarea>
+            </section>
+        </div>
+
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-4 right-4 transform translate-y-20 opacity-0 transition-all duration-300 flex items-center gap-3 py-3 px-5 rounded-xl shadow-2xl z-50 pointer-events-none text-sm font-medium">
+        <span id="toastIcon"></span>
+        <span id="toastMessage"></span>
+    </div>
+
+    <script>
+        // Initialize App
+        document.addEventListener('DOMContentLoaded', () => {
+            loadSettings();
+            generateAuditBlocks(); // Генерируем 6 полей для аудита
+            
+            // Auto-save settings on input change
+            const settingsInputs = ['myDiscord', 'myName', 'myStatic'];
+            settingsInputs.forEach(id => {
+                document.getElementById(id).addEventListener('input', saveSettings);
+            });
+
+            // Auto-format date input (DD.MM)
+            const dateInput = document.getElementById('lastPromoDate');
+            if (dateInput) {
+                dateInput.addEventListener('input', function(e) {
+                    let val = e.target.value.replace(/\D/g, ''); // Удаляем всё кроме цифр
+                    if (val.length > 2) {
+                        val = val.substring(0, 2) + '.' + val.substring(2, 4);
+                    }
+                    e.target.value = val;
+                });
+            }
+        });
+
+        // Generate 6 blocks for Audit tab
+        function generateAuditBlocks() {
+            const container = document.getElementById('audit-container');
+            for(let i = 1; i <= 6; i++) {
+                const block = document.createElement('div');
+                block.className = 'p-4 bg-zinc-900/50 rounded-xl border border-zinc-700/50 space-y-3';
+                block.innerHTML = `
+                    <div>
+                        <label class="block text-xs font-medium text-zinc-400 mb-1">Текст запроса #${i}</label>
+                        <textarea id="auditText${i}" rows="3" placeholder="Скопируйте сюда текст запроса..." class="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-zinc-100 focus:outline-none focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500 resize-y text-sm transition-colors"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-zinc-400 mb-1">Ссылка на запрос #${i}</label>
+                        <input type="text" id="auditLink${i}" placeholder="https://discord.com/..." class="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-zinc-100 focus:outline-none focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500 text-sm transition-colors">
+                    </div>
+                `;
+                container.appendChild(block);
+            }
+        }
+
+        // Tab Switching Logic
+        function switchTab(tabId) {
+            const tabs = ['promo', 'dismiss', 'audit'];
+            const btnColors = {
+                'promo': 'bg-blue-600',
+                'dismiss': 'bg-red-600',
+                'audit': 'bg-yellow-600'
+            };
+
+            tabs.forEach(tab => {
+                const btn = document.getElementById(`btn-${tab}`);
+                const content = document.getElementById(`tab-${tab}`);
+                
+                if (tab === tabId) {
+                    content.classList.remove('hidden');
+                    content.classList.add('block');
+                    btn.className = `flex-1 py-2.5 px-4 text-sm font-medium rounded-lg text-white shadow transition-all ${btnColors[tab]}`;
+                } else {
+                    content.classList.remove('block');
+                    content.classList.add('hidden');
+                    btn.className = "flex-1 py-2.5 px-4 text-sm font-medium rounded-lg text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700/50 transition-all";
+                }
+            });
+        }
+
+        // Local Storage Management
+        function saveSettings() {
+            const settings = {
+                myDiscord: document.getElementById('myDiscord').value,
+                myName: document.getElementById('myName').value,
+                myStatic: document.getElementById('myStatic').value
+            };
+            localStorage.setItem('reportGeneratorSettings', JSON.stringify(settings));
+        }
+
+        function loadSettings() {
+            const saved = localStorage.getItem('reportGeneratorSettings');
+            if (saved) {
+                try {
+                    const settings = JSON.parse(saved);
+                    document.getElementById('myDiscord').value = settings.myDiscord || '';
+                    document.getElementById('myName').value = settings.myName || '';
+                    document.getElementById('myStatic').value = settings.myStatic || '';
+                } catch (e) {
+                    console.error("Failed to parse settings", e);
+                }
+            }
+        }
+
+        // Date Formatting Helper
+        function formatToDDMMYYYY(dateObj) {
+            const dd = String(dateObj.getDate()).padStart(2, '0');
+            const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
+            const yyyy = dateObj.getFullYear();
+            return `${dd}.${mm}.${yyyy}`;
+        }
+
+        // Toast Notification System
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toastMessage');
+            const toastIcon = document.getElementById('toastIcon');
+
+            toastMessage.textContent = message;
+
+            if (type === 'success') {
+                toast.className = "fixed bottom-4 right-4 transform translate-y-0 opacity-100 transition-all duration-300 flex items-center gap-3 py-3 px-5 rounded-xl shadow-2xl z-50 pointer-events-none text-sm font-medium bg-emerald-900 border border-emerald-700 text-emerald-100";
+                toastIcon.innerHTML = `<svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>`;
+            } else if (type === 'error') {
+                toast.className = "fixed bottom-4 right-4 transform translate-y-0 opacity-100 transition-all duration-300 flex items-center gap-3 py-3 px-5 rounded-xl shadow-2xl z-50 pointer-events-none text-sm font-medium bg-red-900 border border-red-700 text-red-100";
+                toastIcon.innerHTML = `<svg class="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`;
+            }
+
+            // Hide after 3 seconds
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+
+        // Main Generation Logic (Promo)
+        function generatePromoResponse() {
+            let myDiscord = document.getElementById('myDiscord').value.trim() || '<@МойТег>';
+            if (myDiscord.startsWith('@')) {
+                myDiscord = `<${myDiscord}>`;
+            }
+            const myName = document.getElementById('myName').value.trim() || 'Имя';
+            const myStatic = document.getElementById('myStatic').value.trim() || 'Статик';
+
+            const reportText = document.getElementById('reportText').value;
+            const approvalLink = document.getElementById('approvalLink').value.trim() || '';
+            const lastPromoDateInput = document.getElementById('lastPromoDate').value.trim();
+
+            if (!reportText.trim()) {
+                showToast('Текст рапорта пуст!', 'error');
+                return;
+            }
+
+            const tagMatch = reportText.match(/Рапорт\s*<?(@\d+)>?/i);
+            const applicantDiscord = tagMatch ? `<${tagMatch[1]}>` : '<@ТегНеНайден>';
+
+            const nameMatch = reportText.match(/Я,\s*([^,]+),\s*находящийся/i);
+            const applicantName = nameMatch ? nameMatch[1].trim() : 'Неизвестно';
+
+            let applicantStatic = '000-000';
+            const specificStaticMatch = reportText.match(/удостоверения[\s\S]*?(\d{3}-\d{3})/i);
+            if (specificStaticMatch) {
+                applicantStatic = specificStaticMatch[1];
+            } else {
+                const fallbackStaticMatch = reportText.match(/\b\d{3}-\d{3}\b/);
+                if (fallbackStaticMatch) {
+                    applicantStatic = fallbackStaticMatch[0];
+                }
+            }
+
+            if (!nameMatch || applicantStatic === '000-000' || !tagMatch) {
+                showToast('Не удалось найти все данные в тексте.', 'error');
+            }
+
+            const rankMatch = reportText.match(/воинского звания\s+(.+?)\s+в связи/i);
+            let newRank = rankMatch ? rankMatch[1].trim() : 'Звание';
+            newRank = newRank.replace(/Гвардии/ig, 'Гв.');
+
+            const today = new Date();
+            const tomorrow = new Date(today);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+
+            const todayStrFull = formatToDDMMYYYY(today);
+            const ddToday = String(today.getDate()).padStart(2, '0');
+            const mmToday = String(today.getMonth() + 1).padStart(2, '0');
+            const todayStrShort = `${ddToday}.${mmToday}`;
+            const tomorrowStrFull = formatToDDMMYYYY(tomorrow);
+
+            let rule5Text = '';
+            if (lastPromoDateInput) {
+                if (lastPromoDateInput === todayStrShort) {
+                    rule5Text = `** Повысить ${tomorrowStrFull} после 00:00, Записать в таблицу, поменять ник на сервере, поменять роли **`;
+                } else {
+                    rule5Text = `** Ранее повышался ${lastPromoDateInput}. Записать в таблицу. Поменять ник на сервере, поменять роли **`;
+                }
+            } else {
+                rule5Text = `**Посмотреть, когда был повышен, и повысить, если не повышался сегодня. Записать в таблицу, поменять ник на сервере, поменять роли**`;
+            }
+
+            const finalOutput = [
+                `1. ${myDiscord} // ${myName} ${myStatic}`,
+                `2. ${applicantDiscord} // ${applicantName} ${applicantStatic}`,
+                `3. Повышен до звания ${newRank}${approvalLink ? ', Согласно - ' + approvalLink : ''}`,
+                `4. ${todayStrFull}`,
+                `5. ${rule5Text}`
+            ].join('\n');
+
+            document.getElementById('outputText').value = finalOutput;
+            showToast('Отчет на повышение сформирован!', 'success');
+        }
+
+        // Dismiss Generation Logic
+        function generateDismissResponse() {
+            let myDiscord = document.getElementById('myDiscord').value.trim() || '<@МойТег>';
+            if (myDiscord.startsWith('@')) {
+                myDiscord = `<${myDiscord}>`;
+            }
+            const myName = document.getElementById('myName').value.trim() || 'Имя';
+            const myStatic = document.getElementById('myStatic').value.trim() || 'Статик';
+
+            const reportText = document.getElementById('dismissReportText').value;
+            const dismissApprovalLink = document.getElementById('dismissApprovalLink').value.trim() || '';
+
+            if (!reportText.trim()) {
+                showToast('Текст рапорта пуст!', 'error');
+                return;
+            }
+
+            const matchData = reportText.match(/Я\s+([А-Яа-яЁёA-Za-z\s]+?)\s*(?:\||,|-)?\s*(\d{3}-\d{3})/i);
+            
+            let applicantName = 'Имя Фамилия';
+            let applicantStatic = '000-000';
+            
+            if (matchData) {
+                applicantName = matchData[1].trim();
+                applicantStatic = matchData[2];
+            } else {
+                showToast('Не удалось автоматически найти Имя и Статик.', 'error');
+            }
+
+            const today = new Date();
+            const todayStrFull = formatToDDMMYYYY(today);
+
+            const finalOutput = [
+                `1. ${myDiscord} // ${myName} ${myStatic}`,
+                `2. @ // ${applicantName} ${applicantStatic}`,
+                `3. Уволен по СЖ, согласно ${dismissApprovalLink}`,
+                `4. ${todayStrFull}`
+            ].join('\n');
+
+            document.getElementById('dismissOutputText').value = finalOutput;
+            showToast('Отчет на увольнение сформирован!', 'success');
+        }
+
+        // Audit Generation Logic
+        function generateAuditResponse() {
+            let myDiscord = document.getElementById('myDiscord').value.trim() || '<@МойТег>';
+            if (myDiscord.startsWith('@')) {
+                myDiscord = `<${myDiscord}>`;
+            }
+            const myName = document.getElementById('myName').value.trim() || 'Имя';
+            const myStatic = document.getElementById('myStatic').value.trim() || 'Статик';
+            
+            const today = new Date();
+            const todayStrFull = formatToDDMMYYYY(today);
+
+            let results = [];
+            let hasContent = false;
+
+            for (let i = 1; i <= 6; i++) {
+                const text = document.getElementById(`auditText${i}`).value.trim();
+                const link = document.getElementById(`auditLink${i}`).value.trim();
+
+                if (!text) continue; // Если окно текста пустое, пропускаем
+                hasContent = true;
+
+                // Парсим первый встречный Discord-тег
+                const tagMatch = text.match(/@\d+/);
+                const targetTag = tagMatch ? `<${tagMatch[0]}>` : '<@ТегНеНайден>';
+
+                // Формируем 4 пункта
+                const line1 = `1. ${myDiscord} // ${myName} ${myStatic}`;
+                const line2 = `2. ${targetTag}`;
+                const line3 = `3. ${link}`;
+                const line4 = `4. ${todayStrFull}`;
+
+                results.push([line1, line2, line3, line4].join('\n'));
+            }
+
+            if (!hasContent) {
+                showToast('Заполните хотя бы один запрос на аудит!', 'error');
+                return;
+            }
+
+            // Объединяем результаты пустой строкой
+            document.getElementById('auditOutputText').value = results.join('\n\n');
+            showToast('Отчет по аудиту сформирован!', 'success');
+        }
+
+        // Clipboard Logic
+        function copyToClipboard(elementId) {
+            const outputText = document.getElementById(elementId);
+            if (!outputText.value) {
+                showToast('Нет текста для копирования', 'error');
+                return;
+            }
+
+            outputText.select();
+            outputText.setSelectionRange(0, 99999); 
+
+            try {
+                if (navigator.clipboard && window.isSecureContext) {
+                    navigator.clipboard.writeText(outputText.value).then(() => {
+                        showToast('Скопировано в буфер!', 'success');
+                    });
+                } else {
+                    document.execCommand('copy');
+                    showToast('Скопировано в буфер!', 'success');
+                }
+            } catch (err) {
+                showToast('Ошибка при копировании', 'error');
+                console.error('Copy error: ', err);
+            }
+            
+            window.getSelection().removeAllRanges();
+        }
+    </script>
+</body>
+</html>
